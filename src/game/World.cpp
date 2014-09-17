@@ -972,6 +972,10 @@ void World::SetInitialWorldSettings()
     sObjectMgr.SetHighestGuids();                           // must be after PackInstances() and PackGroupIds()
     sLog.outString();
 
+    ///- Initialize Lua Engine
+    sLog.outString("Initialize Eluna Lua Engine...");
+    Eluna::Initialize();
+
     sLog.outString("Loading Page Texts...");
     sObjectMgr.LoadPageTexts();
 
@@ -1293,11 +1297,6 @@ void World::SetInitialWorldSettings()
             break;
     }
 
-    ///- Initialize Lua Engine
-    sLog.outString("Initialize Eluna Lua Engine...");
-    Eluna::Initialize();
-    sEluna->OnConfigLoad(false); // Must be done after Eluna is initialized.
-
     ///- Initialize game time and timers
     sLog.outString("DEBUG:: Initialize game time and timers");
     m_gameTime = time(NULL);
@@ -1368,6 +1367,11 @@ void World::SetInitialWorldSettings()
 
     sLog.outString("Initialize AuctionHouseBot...");
     sAuctionBot.Initialize();
+
+    ///- Run eluna scripts.
+    // in multithread foreach: run scripts
+    sEluna->RunScripts();
+    sEluna->OnConfigLoad(false); // Must be done after Eluna is initialized and scripts have run
 
     sLog.outString("WORLD: World initialized");
 
