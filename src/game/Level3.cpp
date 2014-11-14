@@ -6717,3 +6717,10 @@ bool ChatHandler::HandleAccountFriendListCommand(char* args)
 {
     return false;
 }
+
+bool ChatHandler::HandleServerResetAllRaidCommand(char* args)
+{
+    PSendSysMessage("Global raid instances reset, all players in raid instances will be teleported to homebind!");
+    sMapPersistentStateMgr.GetScheduler().ResetAllRaid();
+    return true;
+}
