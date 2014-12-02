@@ -60,8 +60,6 @@ Object::Object()
 
 Object::~Object()
 {
-    Eluna::RemoveRef(this);
-
     if (IsInWorld())
     {
         ///- Do NOT call RemoveFromWorld here, if the object is a player it will crash
@@ -892,7 +890,7 @@ void Object::MarkForClientUpdate()
 }
 
 WorldObject::WorldObject() :
-    elunaEvents(new ElunaEventProcessor(this)),
+    elunaEvents(NULL),
     m_transportInfo(NULL), m_currMap(NULL),
     m_mapId(0), m_InstanceId(0),
     m_isActiveObject(false)
@@ -901,8 +899,8 @@ WorldObject::WorldObject() :
 
 WorldObject::~WorldObject()
 {
-    Eluna::RemoveRef(this);
     delete elunaEvents;
+    elunaEvents = NULL;
 }
 
 void WorldObject::CleanupsBeforeDelete()
@@ -1499,6 +1497,22 @@ void WorldObject::SetMap(Map* map)
     // lets save current map's Id/instanceId
     m_mapId = map->GetId();
     m_InstanceId = map->GetInstanceId();
+
+#ifdef ELUNA
+    delete elunaEvents;
+    // On multithread replace this with a pointer to map's Eluna pointer stored in a map
+    elunaEvents = new ElunaEventProcessor(&Eluna::GEluna, this);
+#endif
+}
+
+void WorldObject::ResetMap()
+{
+#ifdef ELUNA
+    delete elunaEvents;
+    elunaEvents = NULL;
+#endif
+
+    m_currMap = NULL;
 }
 
 TerrainInfo const* WorldObject::GetTerrain() const
