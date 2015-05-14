@@ -304,6 +304,7 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petentry, uint32 petnumber, bool c
     {
         LearnPetPassives();
         CastPetAuras(current);
+        CastOwnerTalentAuras();
     }
 
     Powers powerType = GetPowerType();
@@ -553,6 +554,7 @@ void Pet::SetDeathState(DeathState s)                       // overwrite virtual
         RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
         CastPetAuras(true);
     }
+    CastOwnerTalentAuras();
 }
 
 void Pet::Update(uint32 update_diff, uint32 diff)
@@ -854,7 +856,7 @@ void Pet::SetTP(int32 TP)
 int32 Pet::GetDispTP()
 {
     if (getPetType() != HUNTER_PET)
-        return(0);
+        return (0);
     if (m_TrainingPoints < 0)
         return -m_TrainingPoints;
     else
@@ -1463,8 +1465,8 @@ void Pet::_LoadAuras(uint32 timediff)
 
             for (int32 i = 0; i < MAX_EFFECT_INDEX; ++i)
             {
-                damage[i] = fields[i+5].GetInt32();
-                periodicTime[i] = fields[i+8].GetUInt32();
+                damage[i] = fields[i + 5].GetInt32();
+                periodicTime[i] = fields[i + 8].GetUInt32();
             }
 
             int32 maxduration = fields[11].GetInt32();
@@ -1880,7 +1882,7 @@ void Pet::ToggleAutocast(uint32 spellid, bool apply)
         return;
 
     PetSpellMap::iterator itr = m_spells.find(spellid);
-    PetSpell &petSpell = itr->second;
+    PetSpell& petSpell = itr->second;
 
     uint32 i;
 
@@ -1927,8 +1929,8 @@ bool Pet::IsPermanentPetFor(Player* owner)
         case SUMMON_PET:
             switch (owner->getClass())
             {
-                    // oddly enough, Mage's Water Elemental is still treated as temporary pet with Glyph of Eternal Water
-                    // i.e. does not unsummon at mounting, gets dismissed at teleport etc.
+                // oddly enough, Mage's Water Elemental is still treated as temporary pet with Glyph of Eternal Water
+                // i.e. does not unsummon at mounting, gets dismissed at teleport etc.
                 case CLASS_WARLOCK:
                     return GetCreatureInfo()->CreatureType == CREATURE_TYPE_DEMON;
                 default:
@@ -2012,6 +2014,35 @@ void Pet::CastPetAuras(bool current)
     }
 }
 
+void Pet::CastOwnerTalentAuras()
+{
+    if (!GetOwner() || GetOwner()->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    Player* pOwner = static_cast<Player*>(GetOwner());
+
+    // Handle Ferocious Inspiration Talent
+    if (pOwner && pOwner->getClass() == CLASS_HUNTER)
+    {
+        // clear any existing Ferocious Inspiration auras
+        RemoveAurasDueToSpell(34455);
+        RemoveAurasDueToSpell(34459);
+        RemoveAurasDueToSpell(34460);
+
+        if (isAlive())
+        {
+            if (pOwner->HasSpell(34455)) // Ferocious Inspiration Rank 1
+                CastSpell(this, 34457, true); // Ferocious Inspiration 1%
+
+            if (pOwner->HasSpell(34459)) // Ferocious Inspiration Rank 2
+                CastSpell(this, 34457, true); // Ferocious Inspiration 2%
+
+            if (pOwner->HasSpell(34460)) // Ferocious Inspiration Rank 3
+                CastSpell(this, 34457, true); // Ferocious Inspiration 3%
+        }
+    } // End Ferocious Inspiration Talent
+}
+
 void Pet::CastPetAura(PetAura const* aura)
 {
     uint32 auraId = aura->GetAura(GetEntry());
@@ -2035,11 +2066,11 @@ void Pet::SynchronizeLevelWithOwner()
 
     switch (getPetType())
     {
-            // always same level
+        // always same level
         case SUMMON_PET:
             GivePetLevel(owner->getLevel());
             break;
-            // can't be greater owner level
+        // can't be greater owner level
         case HUNTER_PET:
             if (getLevel() > owner->getLevel())
                 GivePetLevel(owner->getLevel());

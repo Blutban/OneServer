@@ -292,7 +292,7 @@ void GameObject::Update(uint32 update_diff, uint32 p_time)
                             // we need to open doors if they are closed (add there another condition if this code breaks some usage, but it need to be here for battlegrounds)
                             if (GetGoState() != GO_STATE_READY)
                                 ResetDoorOrButton();
-                            // flags in AB are type_button and we need to add them here so no break!
+                        // flags in AB are type_button and we need to add them here so no break!
                         default:
                             if (!m_spawnedByDefault)        // despawn timer
                             {
@@ -989,12 +989,6 @@ void GameObject::Use(Unit* user)
     Unit* spellCaster = user;
     uint32 spellId = 0;
     bool triggered = false;
-
-    if (Player* playerUser = user->ToPlayer())
-    {
-        if (sScriptMgr.OnGossipHello(playerUser, this))
-            return;
-    }
 
     // test only for exist cooldown data (cooldown timer used for door/buttons reset that not have use cooldown)
     if (uint32 cooldown = GetGOInfo()->GetCooldown())
@@ -1848,7 +1842,7 @@ float GameObject::GetObjectBoundingRadius() const
         float dy = m_displayInfo->geoBoxMaxY - m_displayInfo->geoBoxMinY;
         float dz = m_displayInfo->geoBoxMaxZ - m_displayInfo->geoBoxMinZ;
 
-        return (std::abs(dx) + std::abs(dy) + std::abs(dz)) / 2;
+        return (std::abs(dx) + std::abs(dy) + std::abs(dz)) / 2 * GetObjectScale();
     }
 
     return DEFAULT_WORLD_OBJECT_SIZE;

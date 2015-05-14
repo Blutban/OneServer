@@ -64,13 +64,13 @@ class Field
         uint64 GetUInt64() const
         {
             uint64 value = 0;
-            if (!mValue || sscanf(mValue,UI64FMTD,&value) == -1)
+            if (!mValue || sscanf(mValue, UI64FMTD, &value) == -1)
                 return 0;
 
             return value;
         }
 
-        uint64 GetInt64() const
+        int64 GetInt64() const
         {
             int64 value = 0;
             if (!mValue || sscanf(mValue, SI64FMTD, &value) == -1)

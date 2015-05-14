@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2010 - 2014 Eluna Lua Engine <http://emudevs.com/>
+* Copyright (C) 2010 - 2015 Eluna Lua Engine <http://emudevs.com/>
 * This program is free software licensed under GPL version 3
 * Please see the included DOCS/LICENSE.md for more information
 */
@@ -28,6 +28,8 @@
 #ifdef USING_BOOST
 #include <boost/thread/locks.hpp>
 #include <boost/thread/shared_mutex.hpp>
+#else
+#include <ace/Recursive_Thread_Mutex.h>
 #endif
 
 #ifdef TRINITY
@@ -108,20 +110,20 @@ namespace ElunaUtil
         WorldObject const& GetFocusObject() const;
         bool operator()(WorldObject* u);
 
-        bool i_nearest;
         WorldObject const* i_obj;
+        uint32 i_hostile;
+        uint32 i_entry;
         float i_range;
         uint16 i_typeMask;
-        uint32 i_entry;
-        uint32 i_hostile;
+        bool i_nearest;
     };
 
     /*
      * Usage:
      * Inherit this class, then when needing lock, use
-     * ReadGuard lock(_lock);
+     * ReadGuard guard(GetLock());
      * or
-     * WriteGuard lock(_lock);
+     * WriteGuard guard(GetLock());
      *
      * The lock is automatically released at end of scope
      */
@@ -130,11 +132,11 @@ namespace ElunaUtil
     public:
 
 #ifdef USING_BOOST
-        typedef boost::shared_mutex LockType;
+        typedef boost::recursive_mutex LockType;
         typedef boost::shared_lock<boost::shared_mutex> ReadGuard;
         typedef boost::unique_lock<boost::shared_mutex> WriteGuard;
 #else
-        typedef ACE_RW_Thread_Mutex LockType;
+        typedef ACE_Recursive_Thread_Mutex LockType;
         typedef ACE_Read_Guard<LockType> ReadGuard;
         typedef ACE_Write_Guard<LockType> WriteGuard;
 #endif

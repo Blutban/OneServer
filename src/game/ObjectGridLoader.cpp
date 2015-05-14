@@ -28,14 +28,14 @@
 #include "CellImpl.h"
 #include "BattleGround/BattleGround.h"
 
-class MANGOS_DLL_DECL ObjectGridRespawnMover
+class ObjectGridRespawnMover
 {
     public:
         ObjectGridRespawnMover() {}
 
         void Move(GridType& grid);
 
-        template<class T> void Visit(GridRefManager<T> &) {}
+        template<class T> void Visit(GridRefManager<T>&) {}
         void Visit(CreatureMapType& m);
 };
 
@@ -266,7 +266,7 @@ ObjectGridUnloader::Unload(GridType& grid)
 
 template<class T>
 void
-ObjectGridUnloader::Visit(GridRefManager<T> &m)
+ObjectGridUnloader::Visit(GridRefManager<T>& m)
 {
     // remove all cross-reference before deleting
     for (typename GridRefManager<T>::iterator iter = m.begin(); iter != m.end(); ++iter)

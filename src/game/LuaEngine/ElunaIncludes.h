@@ -1,8 +1,11 @@
 /*
-* Copyright (C) 2010 - 2014 Eluna Lua Engine <http://emudevs.com/>
+* Copyright (C) 2010 - 2015 Eluna Lua Engine <http://emudevs.com/>
 * This program is free software licensed under GPL version 3
 * Please see the included DOCS/LICENSE.md for more information
 */
+
+#ifndef _ELUNA_INCLUDES_H
+#define _ELUNA_INCLUDES_H
 
 // Required
 #include "AccountMgr.h"
@@ -45,8 +48,14 @@
 #else
 #include "Config/Config.h"
 #include "AggressorAI.h"
-#include "revision_nr.h"
 #include "BattleGroundMgr.h"
+#include "SQLStorages.h"
+#endif
+
+#ifdef MANGOS
+#include "revision.h"
+#elif defined(CMANGOS)
+#include "revision_nr.h"
 #endif
 
 #if (!defined(TBC) && !defined(CLASSIC))
@@ -61,6 +70,10 @@
 typedef Opcodes                 OpcodesList;
 #endif
 
+/*
+ * Note: if you add or change a CORE_NAME #define,
+ *   please update LuaGlobalFunctions::GetCoreName docstring.
+ */
 #ifdef MANGOS
 #define CORE_NAME               "MaNGOS"
 #define CORE_VERSION            REVISION_NR
@@ -80,6 +93,7 @@ typedef Opcodes                 OpcodesList;
 #define eGuildMgr               (sGuildMgr)
 #define eObjectMgr              (sObjectMgr)
 #define eAccountMgr             (sAccountMgr)
+#define eAuctionMgr             (sAuctionMgr)
 #define eObjectAccessor         (sObjectAccessor)
 #define REGEN_TIME_FULL
 typedef ThreatContainer::StorageType ThreatList;
@@ -96,12 +110,14 @@ typedef ThreatContainer::StorageType ThreatList;
 #define eGuildMgr               (&sGuildMgr)
 #define eObjectMgr              (&sObjectMgr)
 #define eAccountMgr             (&sAccountMgr)
+#define eAuctionMgr             (&sAuctionMgr)
 #define eObjectAccessor         (&sObjectAccessor)
 #define SERVER_MSG_STRING       SERVER_MSG_CUSTOM
 #define TOTAL_LOCALES           MAX_LOCALE
 #define DIALOG_STATUS_SCRIPTED_NO_STATUS    DIALOG_STATUS_UNDEFINED
 #define TARGETICONCOUNT         TARGET_ICON_COUNT
 #define MAX_TALENT_SPECS        MAX_TALENT_SPEC_COUNT
+#define TEAM_NEUTRAL            TEAM_INDEX_NEUTRAL
 
 #ifndef CLASSIC
 #define PLAYER_FIELD_LIFETIME_HONORABLE_KILLS   PLAYER_FIELD_LIFETIME_HONORBALE_KILLS
@@ -121,4 +137,6 @@ enum SelectAggroTarget
     SELECT_TARGET_NEAREST,
     SELECT_TARGET_FARTHEST
 };
-#endif
+#endif // TRINITY
+
+#endif // _ELUNA_INCLUDES_H

@@ -252,7 +252,7 @@ class MANGOS_DLL_SPEC Object
         void ApplyPercentModFloatValue(uint16 index, float val, bool apply)
         {
             val = val != -100.0f ? val : -99.9f ;
-            SetFloatValue(index, GetFloatValue(index) *(apply ? (100.0f + val) / 100.0f : 100.0f / (100.0f + val)));
+            SetFloatValue(index, GetFloatValue(index) * (apply ? (100.0f + val) / 100.0f : 100.0f / (100.0f + val)));
         }
 
         void SetFlag(uint16 index, uint32 newFlag);
@@ -512,9 +512,9 @@ class MANGOS_DLL_SPEC WorldObject : public Object
 
         bool IsPositionValid() const;
         void UpdateGroundPositionZ(float x, float y, float& z) const;
-        void UpdateAllowedPositionZ(float x, float y, float& z) const;
+        void UpdateAllowedPositionZ(float x, float y, float& z, Map* atMap = NULL) const;
 
-        void GetRandomPoint(float x, float y, float z, float distance, float& rand_x, float& rand_y, float& rand_z) const;
+        void GetRandomPoint(float x, float y, float z, float distance, float& rand_x, float& rand_y, float& rand_z, float minDist = 0.0f, float const* ori = NULL) const;
 
         uint32 GetMapId() const { return m_mapId; }
         uint32 GetInstanceId() const { return m_InstanceId; }

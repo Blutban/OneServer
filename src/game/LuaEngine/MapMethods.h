@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2010 - 2014 Eluna Lua Engine <http://emudevs.com/>
+* Copyright (C) 2010 - 2015 Eluna Lua Engine <http://emudevs.com/>
 * This program is free software licensed under GPL version 3
 * Please see the included DOCS/LICENSE.md for more information
 */
@@ -7,12 +7,15 @@
 #ifndef MAPMETHODS_H
 #define MAPMETHODS_H
 
+/***
+ * A game map, e.g. Azeroth, Eastern Kingdoms, the Molten Core, etc.
+ */
 namespace LuaMap
 {
 
 #ifndef CLASSIC
     /**
-     * Returns 'true' if the [Map] is an arena, false otherwise
+     * Returns `true` if the [Map] is an arena [BattleGround], `false` otherwise.
      *
      * @return bool isArena
      */
@@ -24,7 +27,7 @@ namespace LuaMap
 #endif
 
     /**
-     * Returns 'true' if the [Map] is a battleground, false otherwise
+     * Returns `true` if the [Map] is a non-arena [BattleGround], `false` otherwise.
      *
      * @return bool isBattleGround
      */
@@ -39,7 +42,7 @@ namespace LuaMap
     }
 
     /**
-     * Returns 'true' if the [Map] is a dungeon, false otherwise
+     * Returns `true` if the [Map] is a dungeon, `false` otherwise.
      *
      * @return bool isDungeon
      */
@@ -50,7 +53,7 @@ namespace LuaMap
     }
 
     /**
-     * Returns 'true' if the [Map] is empty, false otherwise
+     * Returns `true` if the [Map] has no [Player]s, `false` otherwise.
      *
      * @return bool isEmpty
      */
@@ -62,7 +65,7 @@ namespace LuaMap
 
 #ifndef CLASSIC
     /**
-     * Returns 'true' if the [Map] is a heroic, false otherwise
+     * Returns `true` if the [Map] is a heroic, `false` otherwise.
      *
      * @return bool isHeroic
      */
@@ -74,7 +77,7 @@ namespace LuaMap
 #endif
 
     /**
-     * Returns 'true' if the [Map] is a raid, false otherwise
+     * Returns `true` if the [Map] is a raid, `false` otherwise.
      *
      * @return bool isRaid
      */
@@ -85,7 +88,7 @@ namespace LuaMap
     }
 
     /**
-     * Returns the name of the [Map]
+     * Returns the name of the [Map].
      *
      * @return string mapName
      */
@@ -96,7 +99,8 @@ namespace LuaMap
     }
 
     /**
-     * Returns the height of the [Map] at the given X and Y coordinates
+     * Returns the height of the [Map] at the given X and Y coordinates.
+     *
      * In case of no height found nil is returned
      *
      * @param float x
@@ -119,7 +123,9 @@ namespace LuaMap
     }
 
     /**
-     * Returns the difficulty of the [Map]
+     * Returns the difficulty of the [Map].
+     *
+     * Always returns 0 if the expansion is pre-TBC.
      *
      * @return int32 difficulty
      */
@@ -134,7 +140,7 @@ namespace LuaMap
     }
 
     /**
-     * Returns the instance ID of the [Map]
+     * Returns the instance ID of the [Map].
      *
      * @return uint32 instanceId
      */
@@ -145,8 +151,7 @@ namespace LuaMap
     }
 
     /**
-     * Returns the player count currently on the [Map]
-     * Does not include gamemasters
+     * Returns the player count currently on the [Map] (excluding GMs).
      *
      * @return uint32 playerCount
      */
@@ -157,7 +162,7 @@ namespace LuaMap
     }
 
     /**
-     * Returns the ID of the [Map]
+     * Returns the ID of the [Map].
      *
      * @return uint32 mapId
      */
@@ -168,7 +173,7 @@ namespace LuaMap
     }
 
     /**
-     * Returns the area ID of the [Map] at the specified X, Y and Z coordinates
+     * Returns the area ID of the [Map] at the specified X, Y, and Z coordinates.
      *
      * @param float x
      * @param float y
@@ -190,7 +195,7 @@ namespace LuaMap
     }
 
     /**
-     * Returns a [WorldObject] by it's guid from the map if it is spawned
+     * Returns a [WorldObject] by its GUID from the map if it is spawned.
      *
      * @param uint64 guid
      */
@@ -229,6 +234,42 @@ namespace LuaMap
         }
 #endif
         return 1;
+    }
+
+    /**
+     * Sets the [Weather] type based on [WeatherType] and grade supplied.
+     *
+     *     enum WeatherType
+     *     {
+     *         WEATHER_TYPE_FINE       = 0,
+     *         WEATHER_TYPE_RAIN       = 1,
+     *         WEATHER_TYPE_SNOW       = 2,
+     *         WEATHER_TYPE_STORM      = 3,
+     *         WEATHER_TYPE_THUNDERS   = 86,
+     *         WEATHER_TYPE_BLACKRAIN  = 90
+     *     };
+     *
+     * @param uint32 zone : id of the zone to set the weather for
+     * @param [WeatherType] type : the [WeatherType], see above available weather types
+     * @param float grade : the intensity/grade of the [Weather], ranges from 0 to 1
+     */
+    int SetWeather(Eluna* /*E*/, lua_State* L, Map* map)
+    {
+        uint32 zoneId = Eluna::CHECKVAL<uint32>(L, 2);
+        uint32 weatherType = Eluna::CHECKVAL<uint32>(L, 3);
+        float grade = Eluna::CHECKVAL<float>(L, 4);
+
+#if defined(TRINITY)
+        Weather* weather = WeatherMgr::FindWeather(zoneId);
+        if (!weather)
+            weather = WeatherMgr::AddWeather(zoneId);
+        if (weather)
+            weather->SetWeather((WeatherType)weatherType, grade);
+#else
+        if (Weather::IsValidWeatherType(weatherType))
+            map->SetWeather(zoneId, (WeatherType)weatherType, grade, false);
+#endif
+        return 0;
     }
 };
 #endif

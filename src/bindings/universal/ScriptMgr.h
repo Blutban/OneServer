@@ -75,8 +75,8 @@ struct Script
     bool (*pEffectDummyItem)(Unit*, uint32, SpellEffectIndex, Item*);
     bool (*pEffectAuraDummy)(const Aura*, bool);
 
-    CreatureAI*(*GetAI)(Creature* _Creature);
-    InstanceData*(*GetInstanceData)(Map*);
+    CreatureAI* (*GetAI)(Creature* _Creature);
+    InstanceData* (*GetInstanceData)(Map*);
     // -----------------------------------------
 
     void registerSelf();
@@ -85,7 +85,7 @@ struct Script
 #define VISIBLE_RANGE (50.0f)
 
 // Read function descriptions in CreatureAI
-struct MANGOS_DLL_DECL ScriptedAI : public CreatureAI
+struct ScriptedAI : public CreatureAI
 {
     explicit ScriptedAI(Creature* creature) : CreatureAI(creature) {}
     ~ScriptedAI() {}

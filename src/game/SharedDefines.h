@@ -152,7 +152,6 @@ enum Powers
     POWER_FOCUS                         = 2,            // UNIT_FIELD_POWER3
     POWER_ENERGY                        = 3,            // UNIT_FIELD_POWER4
     POWER_HAPPINESS                     = 4,            // UNIT_FIELD_POWER5
-    POWER_ALL                           = 127,          // default for class? - need check for TBC
     POWER_HEALTH                        = 0xFFFFFFFE    // (-2 as signed value)
 };
 
@@ -197,8 +196,8 @@ enum SpellSchoolMask
 
     // 124, not include normal and holy damage
     SPELL_SCHOOL_MASK_SPELL   = (SPELL_SCHOOL_MASK_FIRE   |
-    SPELL_SCHOOL_MASK_NATURE | SPELL_SCHOOL_MASK_FROST  |
-    SPELL_SCHOOL_MASK_SHADOW | SPELL_SCHOOL_MASK_ARCANE),
+                                 SPELL_SCHOOL_MASK_NATURE | SPELL_SCHOOL_MASK_FROST  |
+                                 SPELL_SCHOOL_MASK_SHADOW | SPELL_SCHOOL_MASK_ARCANE),
     // 126
     SPELL_SCHOOL_MASK_MAGIC   = (SPELL_SCHOOL_MASK_HOLY | SPELL_SCHOOL_MASK_SPELL),
 
@@ -562,13 +561,6 @@ enum Language
 };
 
 #define LANGUAGES_COUNT   19
-
-enum TeamId
-{
-    TEAM_ALLIANCE = 0,
-    TEAM_HORDE,
-    TEAM_NEUTRAL
-};
 
 // In fact !=0 values is alliance/horde root faction ids
 enum Team

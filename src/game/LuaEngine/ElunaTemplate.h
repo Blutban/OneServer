@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2010 - 2014 Eluna Lua Engine <http://emudevs.com/>
+* Copyright (C) 2010 - 2015 Eluna Lua Engine <http://emudevs.com/>
 * This program is free software licensed under GPL version 3
 * Please see the included DOCS/LICENSE.md for more information
 */
@@ -33,9 +33,10 @@ public:
         int args = lua_gettop(L);
         int expected = l->mfunc(E, L);
         args = lua_gettop(L) - args;
-        if (args < 0 || args > expected) // Assert instead?
+        if (args < 0 || args > expected)
         {
             ELUNA_LOG_ERROR("[Eluna]: %s returned unexpected amount of arguments %i out of %i. Report to devs", l->name, args, expected);
+            ASSERT(false);
         }
         for (; args < expected; ++args)
             lua_pushnil(L);
@@ -44,8 +45,8 @@ public:
 
     static void SetMethods(Eluna* E, ElunaRegister* methodTable)
     {
-        if (!methodTable)
-            return;
+        ASSERT(E);
+        ASSERT(methodTable);
 
         lua_pushglobaltable(E->L);
 
@@ -132,20 +133,33 @@ public:
     // that will only be needed on lua side and will not be managed by TC/mangos/<core>
     static void Register(Eluna* E, const char* name, bool gc = false)
     {
-        ASSERT(!tname || name);
+        ASSERT(E);
+        ASSERT(name);
+
+        // check that metatable isn't already there
+        luaL_getmetatable(E->L, name);
+        ASSERT(lua_isnoneornil(E->L, -1));
+
+        // check that metatable isn't already there
+        lua_getglobal(E->L, name);
+        ASSERT(lua_isnoneornil(E->L, -1));
+
+        // pop metatable and methodtable values
+        lua_pop(E->L, 2);
 
         tname = name;
         manageMemory = gc;
 
+        // create methodtable for userdata of this type
         lua_newtable(E->L);
         int methods = lua_gettop(E->L);
 
-        // store method table in globals so that
-        // scripts can add functions in Lua
+        // push methodtable to stack to be accessed and modified by users
         lua_pushvalue(E->L, methods);
         lua_setglobal(E->L, tname);
 
-        luaL_newmetatable(E->L, tname);
+        // create metatable for userdatas of this type
+        ASSERT(luaL_newmetatable(E->L, tname));
         int metatable = lua_gettop(E->L);
 
         // tostring
@@ -231,25 +245,18 @@ public:
     template<typename C>
     static void SetMethods(Eluna* E, ElunaRegister<C>* methodTable)
     {
-        if (!methodTable)
-            return;
+        ASSERT(E);
+        ASSERT(tname);
+        ASSERT(methodTable);
 
+        // get metatable
         luaL_getmetatable(E->L, tname);
-        if (!lua_istable(E->L, -1))
-        {
-            lua_remove(E->L, -1);
-            ELUNA_LOG_ERROR("%s missing metatable", tname);
-            return;
-        }
+        ASSERT(lua_istable(E->L, -1));
 
+        // get method table
         lua_getfield(E->L, -1, "__index");
         lua_remove(E->L, -2);
-        if (!lua_istable(E->L, -1))
-        {
-            lua_remove(E->L, -1);
-            ELUNA_LOG_ERROR("%s missing method table from metatable", tname);
-            return;
-        }
+        ASSERT(lua_istable(E->L, -1));
 
         for (; methodTable && methodTable->name && methodTable->mfunc; ++methodTable)
         {
@@ -395,9 +402,10 @@ public:
         int top = lua_gettop(L);
         int expected = l->mfunc(E, L, obj);
         int args = lua_gettop(L) - top;
-        if (args < 0 || args > expected) // Assert instead?
+        if (args < 0 || args > expected)
         {
             ELUNA_LOG_ERROR("[Eluna]: %s returned unexpected amount of arguments %i out of %i. Report to devs", l->name, args, expected);
+            ASSERT(false);
         }
         if (args == expected)
             return expected;
@@ -441,40 +449,5 @@ public:
     static int LessOrEqual(lua_State* L) { return CompareError(L); }
     static int Call(lua_State* L) { return luaL_error(L, "attempt to call a %s value", tname); }
 };
-//
-//template<typename T> const char* ElunaTemplate<T>::tname;
-//template<typename T> bool ElunaTemplate<T>::manageMemory;
-
-#if (!defined(TBC) && !defined(CLASSIC))
-template<> int ElunaTemplate<Vehicle>::CollectGarbage(lua_State* L);
-#endif
-
-template<> int ElunaTemplate<uint32>::Add(lua_State* L);
-template<> int ElunaTemplate<uint32>::Substract(lua_State* L);
-template<> int ElunaTemplate<uint32>::Multiply(lua_State* L);
-template<> int ElunaTemplate<uint32>::Divide(lua_State* L);
-template<> int ElunaTemplate<uint32>::Mod(lua_State* L);
-template<> int ElunaTemplate<uint32>::Pow(lua_State* L);
-// template<> int ElunaTemplate<uint32>::UnaryMinus(lua_State* L);
-template<> int ElunaTemplate<uint32>::Concat(lua_State* L);
-template<> int ElunaTemplate<uint32>::Length(lua_State* L);
-template<> int ElunaTemplate<uint32>::Equal(lua_State* L);
-template<> int ElunaTemplate<uint32>::Less(lua_State* L);
-template<> int ElunaTemplate<uint32>::LessOrEqual(lua_State* L);
-template<> int ElunaTemplate<uint32>::Call(lua_State* L);
-
-template<> int ElunaTemplate<int32>::Add(lua_State* L);
-template<> int ElunaTemplate<int32>::Substract(lua_State* L);
-template<> int ElunaTemplate<int32>::Multiply(lua_State* L);
-template<> int ElunaTemplate<int32>::Divide(lua_State* L);
-template<> int ElunaTemplate<int32>::Mod(lua_State* L);
-template<> int ElunaTemplate<int32>::Pow(lua_State* L);
-template<> int ElunaTemplate<int32>::UnaryMinus(lua_State* L);
-template<> int ElunaTemplate<int32>::Concat(lua_State* L);
-template<> int ElunaTemplate<int32>::Length(lua_State* L);
-template<> int ElunaTemplate<int32>::Equal(lua_State* L);
-template<> int ElunaTemplate<int32>::Less(lua_State* L);
-template<> int ElunaTemplate<int32>::LessOrEqual(lua_State* L);
-template<> int ElunaTemplate<int32>::Call(lua_State* L);
 
 #endif

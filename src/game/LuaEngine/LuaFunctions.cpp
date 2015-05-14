@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2010 - 2014 Eluna Lua Engine <http://emudevs.com/>
+* Copyright (C) 2010 - 2015 Eluna Lua Engine <http://emudevs.com/>
 * This program is free software licensed under GPL version 3
 * Please see the included DOCS/LICENSE.md for more information
 */
@@ -34,7 +34,6 @@ extern "C"
 #include "QuestMethods.h"
 #include "MapMethods.h"
 #include "CorpseMethods.h"
-#include "WeatherMethods.h"
 #include "VehicleMethods.h"
 #include "BattleGroundMethods.h"
 
@@ -47,6 +46,7 @@ ElunaGlobal::ElunaRegister GlobalMethods[] =
     { "RegisterGuildEvent", &LuaGlobalFunctions::RegisterGuildEvent },                         // RegisterGuildEvent(event, function)
     { "RegisterGroupEvent", &LuaGlobalFunctions::RegisterGroupEvent },                         // RegisterGroupEvent(event, function)
     { "RegisterCreatureEvent", &LuaGlobalFunctions::RegisterCreatureEvent },                   // RegisterCreatureEvent(entry, event, function)
+    { "RegisterUniqueCreatureEvent", &LuaGlobalFunctions::RegisterUniqueCreatureEvent },             // RegisterUniqueCreatureEvent(guid, instance, event, function)
     { "RegisterCreatureGossipEvent", &LuaGlobalFunctions::RegisterCreatureGossipEvent },       // RegisterCreatureGossipEvent(entry, event, function)
     { "RegisterGameObjectEvent", &LuaGlobalFunctions::RegisterGameObjectEvent },               // RegisterGameObjectEvent(entry, event, function)
     { "RegisterGameObjectGossipEvent", &LuaGlobalFunctions::RegisterGameObjectGossipEvent },   // RegisterGameObjectGossipEvent(entry, event, function)
@@ -54,6 +54,21 @@ ElunaGlobal::ElunaRegister GlobalMethods[] =
     { "RegisterItemGossipEvent", &LuaGlobalFunctions::RegisterItemGossipEvent },               // RegisterItemGossipEvent(entry, event, function)
     { "RegisterPlayerGossipEvent", &LuaGlobalFunctions::RegisterPlayerGossipEvent },           // RegisterPlayerGossipEvent(menu_id, event, function)
     { "RegisterBGEvent", &LuaGlobalFunctions::RegisterBGEvent },                               // RegisterBGEvent(event, function)
+
+    { "ClearBattleGroundEvents", &LuaGlobalFunctions::ClearBattleGroundEvents },
+    { "ClearCreatureEvents", &LuaGlobalFunctions::ClearCreatureEvents },
+    { "ClearUniqueCreatureEvents", &LuaGlobalFunctions::ClearUniqueCreatureEvents },
+    { "ClearCreatureGossipEvents", &LuaGlobalFunctions::ClearCreatureGossipEvents },
+    { "ClearGameObjectEvents", &LuaGlobalFunctions::ClearGameObjectEvents },
+    { "ClearGameObjectGossipEvents", &LuaGlobalFunctions::ClearGameObjectGossipEvents },
+    { "ClearGroupEvents", &LuaGlobalFunctions::ClearGroupEvents },
+    { "ClearGuildEvents", &LuaGlobalFunctions::ClearGuildEvents },
+    { "ClearItemEvents", &LuaGlobalFunctions::ClearItemEvents },
+    { "ClearItemGossipEvents", &LuaGlobalFunctions::ClearItemGossipEvents },
+    { "ClearPacketEvents", &LuaGlobalFunctions::ClearPacketEvents },
+    { "ClearPlayerEvents", &LuaGlobalFunctions::ClearPlayerEvents },
+    { "ClearPlayerGossipEvents", &LuaGlobalFunctions::ClearPlayerGossipEvents },
+    { "ClearServerEvents", &LuaGlobalFunctions::ClearServerEvents },
 
     // Getters
     { "GetLuaEngine", &LuaGlobalFunctions::GetLuaEngine },
@@ -123,10 +138,6 @@ ElunaGlobal::ElunaRegister GlobalMethods[] =
     { "RemoveCorpse", &LuaGlobalFunctions::RemoveCorpse },
     { "ConvertCorpseForPlayer", &LuaGlobalFunctions::ConvertCorpseForPlayer },
     { "RemoveOldCorpses", &LuaGlobalFunctions::RemoveOldCorpses },
-    { "FindWeather", &LuaGlobalFunctions::FindWeather },
-    { "AddWeather", &LuaGlobalFunctions::AddWeather },
-    { "RemoveWeather", &LuaGlobalFunctions::RemoveWeather },
-    { "SendFineWeatherToPlayer", &LuaGlobalFunctions::SendFineWeatherToPlayer },
     { "CreateInt64", &LuaGlobalFunctions::CreateLongLong },
     { "CreateUint64", &LuaGlobalFunctions::CreateULongLong },
 
@@ -151,7 +162,7 @@ ElunaRegister<Object> ObjectMethods[] =
     // Setters
     { "SetInt32Value", &LuaObject::SetInt32Value },           // :SetInt32Value(index, value) - Sets an int value for the object
     { "SetUInt32Value", &LuaObject::SetUInt32Value },         // :SetUInt32Value(index, value) - Sets an uint value for the object
-    { "UpdateUInt32Value", &LuaObject::UpdateUInt32Value },   // :UpdateUInt32Value(index, value) - Updates an uint value for the object
+    { "UpdateUInt32Value", &LuaObject::UpdateUInt32Value },   // :UpdateUInt32Value(index, value) - Sets an uint value for the object
     { "SetFloatValue", &LuaObject::SetFloatValue },           // :SetFloatValue(index, value) - Sets a float value for the object
     { "SetByteValue", &LuaObject::SetByteValue },             // :SetByteValue(index, offset, value) - Sets a byte value for the object
     { "SetUInt16Value", &LuaObject::SetUInt16Value },         // :SetUInt16Value(index, offset, value) - Sets an uint16 value for the object
@@ -200,7 +211,10 @@ ElunaRegister<WorldObject> WorldObjectMethods[] =
     { "GetNearestCreature", &LuaWorldObject::GetNearestCreature },        // :GetNearestCreature([range, entry]) - Returns nearest creature with given entry in sight or given range entry can be 0 or nil for any.
     { "GetNearObject", &LuaWorldObject::GetNearObject },
     { "GetNearObjects", &LuaWorldObject::GetNearObjects },
-    { "GetDistance", &LuaWorldObject::GetDistance },                      // :GetDistance(WorldObject or x, y, z) - Returns the distance between 2 objects or location
+    { "GetDistance", &LuaWorldObject::GetDistance },
+    { "GetExactDistance", &LuaWorldObject::GetExactDistance },
+    { "GetDistance2d", &LuaWorldObject::GetDistance2d },
+    { "GetExactDistance2d", &LuaWorldObject::GetExactDistance2d },
     { "GetRelativePoint", &LuaWorldObject::GetRelativePoint },            // :GetRelativePoint(dist, rad) - Returns the x, y and z of a point dist away from worldobject.
     { "GetAngle", &LuaWorldObject::GetAngle },                            // :GetAngle(WorldObject or x, y) - Returns angle between world object and target or x and y coords.
 
@@ -247,7 +261,7 @@ ElunaRegister<Unit> UnitMethods[] =
     { "GetUnfriendlyUnitsInRange", &LuaUnit::GetUnfriendlyUnitsInRange }, // :GetUnfriendlyUnitsInRange([range]) - Returns a list of unfriendly units in range, can return nil
     { "GetOwnerGUID", &LuaUnit::GetOwnerGUID },                           // :GetOwnerGUID() - Returns the UNIT_FIELD_SUMMONEDBY owner
     { "GetCreatorGUID", &LuaUnit::GetCreatorGUID },                       // :GetCreatorGUID() - Returns the UNIT_FIELD_CREATEDBY creator
-    { "GetMinionGUID", &LuaUnit::GetMinionGUID },                         // :GetMinionGUID() - Returns the UNIT_FIELD_SUMMON unit's minion GUID
+    { "GetMinionGUID", &LuaUnit::GetPetGUID },                            // :GetMinionGUID() - Decapreted. GetMinionGUID is same as GetPetGUID
     { "GetCharmerGUID", &LuaUnit::GetCharmerGUID },                       // :GetCharmerGUID() - Returns the UNIT_FIELD_CHARMEDBY charmer
     { "GetCharmGUID", &LuaUnit::GetCharmGUID },                           // :GetCharmGUID() - Returns the unit's UNIT_FIELD_CHARM guid
     { "GetPetGUID", &LuaUnit::GetPetGUID },                               // :GetPetGUID() - Returns the unit's pet GUID
@@ -286,9 +300,9 @@ ElunaRegister<Unit> UnitMethods[] =
 #endif
     { "SetSpeed", &LuaUnit::SetSpeed },                       // :SetSpeed(type, speed[, forced]) - Sets speed for the movement type (0 = walk, 1 = run ..)
     // {"SetStunned", &LuaUnit::SetStunned},                // :SetStunned([enable]) - Stuns or removes stun
-    // {"SetRooted", &LuaUnit::SetRooted},                  // :SetRooted([enable]) - Roots or removes root
-    // {"SetConfused", &LuaUnit::SetConfused},              // :SetConfused([enable]) - Sets confused or removes confusion
-    // {"SetFeared", &LuaUnit::SetFeared},                  // :SetFeared([enable]) - Fears or removes fear
+    {"SetRooted", &LuaUnit::SetRooted},                       // :SetRooted([enable]) - Roots or removes root
+    {"SetConfused", &LuaUnit::SetConfused},                   // :SetConfused([enable]) - Sets confused or removes confusion
+    {"SetFeared", &LuaUnit::SetFeared},                       // :SetFeared([enable]) - Fears or removes fear
     { "SetPvP", &LuaUnit::SetPvP },                           // :SetPvP([apply]) - Sets the units PvP on or off
 #if (!defined(TBC) && !defined(CLASSIC))
     { "SetFFA", &LuaUnit::SetFFA },                           // :SetFFA([apply]) - Sets the units FFA tag on or off
@@ -300,7 +314,7 @@ ElunaRegister<Unit> UnitMethods[] =
     { "SetName", &LuaUnit::SetName },                         // :SetName(name) - Sets the unit's name
     { "SetSheath", &LuaUnit::SetSheath },                     // :SetSheath(SheathState) - Sets unit's sheathstate
     { "SetCreatorGUID", &LuaUnit::SetCreatorGUID },           // :SetOwnerGUID(uint64 ownerGUID) - Sets the owner's guid of a summoned creature, etc
-    { "SetMinionGUID", &LuaUnit::SetMinionGUID },             // :SetCreatorGUID(uint64 creatorGUID) - Sets the UNIT_FIELD_CREATEDBY creator's guid
+    { "SetMinionGUID", &LuaUnit::SetPetGUID },                // Decapreted. Same as SetPetGUID
     { "SetCharmerGUID", &LuaUnit::SetCharmerGUID },           // :SetCharmerGUID(uint64 ownerGUID) - Sets the UNIT_FIELD_CHARMEDBY charmer GUID
     { "SetPetGUID", &LuaUnit::SetPetGUID },                   // :SetPetGUID(uint64 guid) - Sets the pet's guid
 #if (!defined(TBC) && !defined(CLASSIC))
@@ -434,8 +448,9 @@ ElunaRegister<Player> PlayerMethods[] =
     { "GetLevelPlayedTime", &LuaPlayer::GetLevelPlayedTime },                     // :GetLevelPlayedTime() - Returns the player's played time at that level
     { "GetTotalPlayedTime", &LuaPlayer::GetTotalPlayedTime },                     // :GetTotalPlayedTime() - Returns the total played time of that player
     { "GetItemByPos", &LuaPlayer::GetItemByPos },                                 // :GetItemByPos(bag, slot) - Returns item in given slot in a bag (bag: 19-22 slot: 0-35) or inventory (bag: 255 slot : 0-38)
-    { "GetReputation", &LuaPlayer::GetReputation },                               // :GetReputation(faction) - Gets player's reputation with given faction
     { "GetItemByEntry", &LuaPlayer::GetItemByEntry },                             // :GetItemByEntry(entry) - Gets an item if the player has it
+    { "GetItemByGUID", &LuaPlayer::GetItemByGUID },
+    { "GetReputation", &LuaPlayer::GetReputation },                               // :GetReputation(faction) - Gets player's reputation with given faction
     { "GetEquippedItemBySlot", &LuaPlayer::GetEquippedItemBySlot },               // :GetEquippedItemBySlot(slotId) - Returns equipped item by slot
     { "GetQuestLevel", &LuaPlayer::GetQuestLevel },                               // :GetQuestLevel(quest) - Returns quest's level
     { "GetChatTag", &LuaPlayer::GetChatTag },                                     // :GetChatTag() - Returns player chat tag ID
@@ -561,6 +576,7 @@ ElunaRegister<Player> PlayerMethods[] =
 #ifndef CLASSIC
     { "IsInArenaTeam", &LuaPlayer::IsInArenaTeam },                                       // :IsInArenaTeam(type) - type : 0 = 2v2, 1 = 3v3, 2 = 5v5
 #endif
+    { "CanCompleteQuest", &LuaPlayer::CanCompleteQuest },
     { "CanEquipItem", &LuaPlayer::CanEquipItem },                                         // :CanEquipItem(entry/item, slot) - Returns true if the player can equip given item/item entry
     { "IsFalling", &LuaPlayer::IsFalling },                                               // :IsFalling() - Returns true if the unit is falling
     { "ToggleAFK", &LuaPlayer::ToggleAFK },                                               // :ToggleAFK() - Toggles AFK state for player
@@ -635,9 +651,9 @@ ElunaRegister<Player> PlayerMethods[] =
     { "SendNotification", &LuaPlayer::SendNotification },                                 // :SendNotification(message) - Sends a red message in the middle of your screen
     { "SendPacket", &LuaPlayer::SendPacket },                                             // :SendPacket(packet, selfOnly) - Sends a packet to player or everyone around also if selfOnly is false
     { "SendAddonMessage", &LuaPlayer::SendAddonMessage },                                 // :SendAddonMessage(prefix, message, channel, receiver) - Sends an addon message to the player. 
-    { "SendVendorWindow", &LuaPlayer::SendVendorWindow },                                 // :SendVendorWindow(unit) - Sends the unit's vendor window to the player
     { "ModifyMoney", &LuaPlayer::ModifyMoney },                                           // :ModifyMoney(amount[, sendError]) - Modifies (does not set) money (copper count) of the player. Amount can be negative to remove copper
     { "LearnSpell", &LuaPlayer::LearnSpell },                                             // :LearnSpell(id) - learns the given spell
+    { "LearnTalent", &LuaPlayer::LearnTalent },
     { "RemoveItem", &LuaPlayer::RemoveItem },                                             // :RemoveItem(item/entry, amount) - Removes amount of item from player
     { "RemoveLifetimeKills", &LuaPlayer::RemoveLifetimeKills },                           // :RemoveLifetimeKills(val) - Removes a specified amount(val) of the player's lifetime (honorable) kills
     { "ResurrectPlayer", &LuaPlayer::ResurrectPlayer },                                   // :ResurrectPlayer([percent[, sickness(bool)]]) - Resurrects the player at percentage, player gets resurrection sickness if sickness set to true
@@ -646,7 +662,6 @@ ElunaRegister<Player> PlayerMethods[] =
     { "ResetSpellCooldown", &LuaPlayer::ResetSpellCooldown },                             // :ResetSpellCooldown(spellId, update(bool~optional)) - Resets cooldown of the specified spellId. If update is true, it will send WorldPacket SMSG_CLEAR_COOLDOWN to the player, else it will just clear the spellId from m_spellCooldowns. This is true by default
     { "ResetTypeCooldowns", &LuaPlayer::ResetTypeCooldowns },                             // :ResetTypeCooldowns(category, update(bool~optional)) - Resets all cooldowns for the spell category(type). If update is true, it will send WorldPacket SMSG_CLEAR_COOLDOWN to the player, else it will just clear the spellId from m_spellCooldowns. This is true by default
     { "ResetAllCooldowns", &LuaPlayer::ResetAllCooldowns },                               // :ResetAllCooldowns() - Resets all spell cooldowns
-    { "GiveLevel", &LuaPlayer::GiveLevel },                                               // :GiveLevel(level) - Gives levels to the player
     { "GiveXP", &LuaPlayer::GiveXP },                                                     // :GiveXP(xp[, victim, pureXP, triggerHook]) - Gives XP to the player. If pure is false, bonuses are count in. If triggerHook is false, GiveXp hook is not triggered.
     // {"RemovePet", &LuaPlayer::RemovePet},                                            // :RemovePet([mode, returnreagent]) - Removes the player's pet. Mode determines if the pet is saved and how
     // {"SummonPet", &LuaPlayer::SummonPet},                                            // :SummonPet(entry, x, y, z, o, petType, despwtime) - Summons a pet for the player
@@ -657,6 +672,8 @@ ElunaRegister<Player> PlayerMethods[] =
     { "CompleteQuest", &LuaPlayer::CompleteQuest },                                       // :CompleteQuest(entry) - Completes a quest by entry
     { "IncompleteQuest", &LuaPlayer::IncompleteQuest },                                   // :IncompleteQuest(entry) - Uncompletes the quest by entry for the player
     { "FailQuest", &LuaPlayer::FailQuest },                                               // :FailQuest(entry) - Player fails the quest entry
+    { "AddQuest", &LuaPlayer::AddQuest },
+    { "RemoveQuest", &LuaPlayer::RemoveQuest },
     // {"RemoveActiveQuest", &LuaPlayer::RemoveActiveQuest},                            // :RemoveActiveQuest(entry) - Removes an active quest
     // {"RemoveRewardedQuest", &LuaPlayer::RemoveRewardedQuest},                        // :RemoveRewardedQuest(entry) - Removes a rewarded quest
     { "AreaExploredOrEventHappens", &LuaPlayer::AreaExploredOrEventHappens },             // :AreaExploredOrEventHappens(questId) - Satisfies an area or event requrement for the questId
@@ -693,6 +710,7 @@ ElunaRegister<Player> PlayerMethods[] =
     { "LeaveBattleground", &LuaPlayer::LeaveBattleground },                               // :LeaveBattleground([teleToEntryPoint]) - The player leaves the battleground
     // {"BindToInstance", &LuaPlayer::BindToInstance},                                  // :BindToInstance() - Binds the player to the current instance
     { "UnbindInstance", &LuaPlayer::UnbindInstance },                                     // :UnbindInstance(map, difficulty) - Unbinds the player from an instance
+    { "UnbindAllInstances", &LuaPlayer::UnbindAllInstances },                             // :UnbindAllInstances() - Unbinds the player from all instances
     { "RemoveFromBattlegroundRaid", &LuaPlayer::RemoveFromBattlegroundRaid },             // :RemoveFromBattlegroundRaid() - Removes the player from a battleground or battlefield raid
 #if (!defined(TBC) && !defined(CLASSIC))
     { "ResetAchievements", &LuaPlayer::ResetAchievements },                               // :ResetAchievements() - Resets player�s achievements
@@ -705,7 +723,7 @@ ElunaRegister<Player> PlayerMethods[] =
     { "SendTabardVendorActivate", &LuaPlayer::SendTabardVendorActivate },                 // :SendTabardVendorActivate(WorldObject) - Sends tabard vendor window from object to player
     { "SendSpiritResurrect", &LuaPlayer::SendSpiritResurrect },                           // :SendSpiritResurrect() - Sends resurrect window to player
     { "SendTaxiMenu", &LuaPlayer::SendTaxiMenu },                                         // :SendTaxiMenu(creature) - Sends flight window to player from creature
-    { "RewardQuest", &LuaPlayer::RewardQuest },                                           // :RewardQuest(entry) - Gives quest rewards for the player
+    { "RewardQuest", &LuaPlayer::RewardQuest },
     { "SendAuctionMenu", &LuaPlayer::SendAuctionMenu },                                   // :SendAuctionMenu(unit) - Sends auction window to player. Auction house is sent by object.
     { "SendShowMailBox", &LuaPlayer::SendShowMailBox },                                   // :SendShowMailBox([mailboxguid]) - Sends the mail window to player from the mailbox gameobject. The guid is required on patches below wotlk.
     { "StartTaxi", &LuaPlayer::StartTaxi },                                               // :StartTaxi(pathId) - player starts the given flight path
@@ -838,6 +856,8 @@ ElunaRegister<GameObject> GameObjectMethods[] =
     { "GetDisplayId", &LuaGameObject::GetDisplayId },
     { "GetGoState", &LuaGameObject::GetGoState },
     { "GetLootState", &LuaGameObject::GetLootState },
+    { "GetLootRecipient", &LuaGameObject::GetLootRecipient },
+    { "GetLootRecipientGroup", &LuaGameObject::GetLootRecipientGroup },
 
     // Setters
     { "SetGoState", &LuaGameObject::SetGoState },
@@ -1123,7 +1143,6 @@ ElunaRegister<ElunaQuery> QueryMethods[] =
     { "GetFloat", &LuaQuery::GetFloat },                      // :GetFloat(column) - returns the value of a float column
     { "GetDouble", &LuaQuery::GetDouble },                    // :GetDouble(column) - returns the value of a double column
     { "GetString", &LuaQuery::GetString },                    // :GetString(column) - returns the value of a string column, always returns a string
-    { "GetCString", &LuaQuery::GetCString },                  // :GetCString(column) - returns the value of a string column, can return nil
     { "IsNull", &LuaQuery::IsNull },                          // :IsNull(column) - returns true if the column is null
 
     { NULL, NULL },
@@ -1177,6 +1196,9 @@ ElunaRegister<Map> MapMethods[] =
     { "GetHeight", &LuaMap::GetHeight },                      // :GetHeight(x, y[, phasemask]) - Returns ground Z coordinate. UNDOCUMENTED
     { "GetWorldObject", &LuaMap::GetWorldObject },            // :GetWorldObject(guid) - Returns a worldobject (player, creature, gameobject..) from the map by it's guid
 
+    // Setters
+    { "SetWeather", &LuaMap::SetWeather },
+
     // Booleans
 #ifndef CLASSIC
     { "IsArena", &LuaMap::IsArena },                          // :IsArena() - Returns the true if the map is an arena, else false UNDOCUMENTED
@@ -1204,25 +1226,7 @@ ElunaRegister<Corpse> CorpseMethods[] =
     { NULL, NULL }
 };
 
-ElunaRegister<Weather> WeatherMethods[] =
-{
-    // Getters
-    { "GetZoneId", &LuaWeather::GetZoneId },
-
-    // Setters
-    { "SetWeather", &LuaWeather::SetWeather },
-
-    // Boolean
-    { "Regenerate", &LuaWeather::Regenerate },
-    { "UpdateWeather", &LuaWeather::UpdateWeather },
-
-    // Other
-    { "SendWeatherUpdateToPlayer", &LuaWeather::SendWeatherUpdateToPlayer },
-
-    { NULL, NULL }
-};
-
-ElunaRegister<AuctionHouseObject> AuctionMethods[] =
+ElunaRegister<AuctionHouseEntry> AuctionMethods[] =
 {
     { NULL, NULL }
 };
@@ -1384,11 +1388,8 @@ void RegisterFunctions(Eluna* E)
     ElunaTemplate<Map>::Register(E, "Map");
     ElunaTemplate<Map>::SetMethods(E, MapMethods);
 
-    ElunaTemplate<Weather>::Register(E, "Weather");
-    ElunaTemplate<Weather>::SetMethods(E, WeatherMethods);
-
-    ElunaTemplate<AuctionHouseObject>::Register(E, "AuctionHouseObject");
-    ElunaTemplate<AuctionHouseObject>::SetMethods(E, AuctionMethods);
+    ElunaTemplate<AuctionHouseEntry>::Register(E, "AuctionHouseEntry");
+    ElunaTemplate<AuctionHouseEntry>::SetMethods(E, AuctionMethods);
 
     ElunaTemplate<BattleGround>::Register(E, "BattleGround");
     ElunaTemplate<BattleGround>::SetMethods(E, BattleGroundMethods);

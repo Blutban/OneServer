@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2010 - 2014 Eluna Lua Engine <http://emudevs.com/>
+* Copyright (C) 2010 - 2015 Eluna Lua Engine <http://emudevs.com/>
 * This program is free software licensed under GPL version 3
 * Please see the included DOCS/LICENSE.md for more information
 */
@@ -117,6 +117,32 @@ namespace LuaGameObject
     int GetLootState(Eluna* /*E*/, lua_State* L, GameObject* go)
     {
         Eluna::Push(L, go->getLootState());
+        return 1;
+    }
+
+    /**
+     * Returns the [Player] that can loot the [GameObject]
+     *
+     * @return [Player] player
+     */
+    int GetLootRecipient(Eluna* /*E*/, lua_State* L, GameObject* go)
+    {
+        Eluna::Push(L, go->GetLootRecipient());
+        return 1;
+    }
+
+    /**
+     * Returns the [Group] that can loot the [GameObject]
+     *
+     * @return [Group] group
+     */
+    int GetLootRecipientGroup(Eluna* /*E*/, lua_State* L, GameObject* go)
+    {
+#ifdef TRINITY
+        Eluna::Push(L, go->GetLootRecipientGroup());
+#else
+        Eluna::Push(L, go->GetGroupLootRecipient());
+#endif
         return 1;
     }
 
